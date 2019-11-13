@@ -14,6 +14,10 @@ def star_to_pd(star_dir):
         if file.endswith(".star"):
             stars.append(os.path.join(star_dir, file))
 
+    if len(stars) == 0:
+        print('No star files found.')
+        sys.exit(1)
+
     rows_list = []
     for star in stars:
         star_data = pystar2.load(star)['']
@@ -27,7 +31,7 @@ def star_to_pd(star_dir):
         for pick in list(star_data.values())[0]:
             single_row = {}
             single_row.update(
-                star = star,
+                star = os.path.basename(star),
                 x = pick[index_x],
                 y = pick[index_y],
                 cls = pick[index_class],
