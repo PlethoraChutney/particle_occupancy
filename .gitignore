@@ -3,3 +3,5 @@ venv/
 *.Rdata
 par_files/
 *.csv
+*.pdf
+
