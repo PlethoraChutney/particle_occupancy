@@ -1,0 +1,5 @@
+*.swp
+venv/
+*.Rdata
+par_files/
+*.csv
