@@ -63,6 +63,21 @@ cleave.classified %>%
                     aesthetics = c('color', 'fill'))
 ggsave('particle_cleavage.pdf', width = 8, height = 5)
 
+cleave.classified %>% 
+  group_by(State) %>% 
+  summarize(n = n()) %>% 
+  mutate(label = paste(State, '\n', n)) %>% 
+  mutate(label = str_replace(label, ', ', '\n')) %>% 
+  mutate(known = if_else(str_detect(State, 'Alpha Cleaved'), 'Alpha',  
+                         if_else(str_detect(State, 'Gamma Cleaved'), 'Gamma', 'Other'))) %>% 
+  ggplot() +
+  geom_treemap(aes(area = n, fill = State, color = State, subgroup = known)) +
+  geom_treemap_text(aes(area = n, label = label, subgroup = known), color = 'white', place = 'center') +
+  theme(legend.position = 'none') +
+  scale_fill_manual(values = c('#1f77b4', '#ff7f0e', '#2ca02c', '#d62728', '#9467bd', '#8c564b', '#e377c2', '#7f7f7f', '#bcbd22', '#17becf'),
+                    aesthetics = c('color', 'fill'))
+ggsave('particle_cleavage_alternate.pdf', width = 8, height = 8)
+
 #### Make new par file(s) ####
 original.par.file <- read_table2('par_files/output_par_173_1.par')
 
