@@ -71,5 +71,5 @@ particles.to.select <- cleave.classified %>%
   select(Particle)
 
 new.par.file <- original.par.file %>% 
-  mutate(OCC = if_else(C %in% particles.to.select$Particle, 100, 0)) %>% 
+  mutate(OCC = if_else(C %in% particles.to.select$Particle | , 100, 0)) %>% 
   mutate(INCLUDE = if_else(C %in% particles.to.select$Particle, 1, 0))

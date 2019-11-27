@@ -3,8 +3,10 @@ import sys
 import pandas as pd
 import argparse
 
+# we drop the last two rows because they're cisTEM diagnostics
 def read_par(file):
     par_file = pd.read_csv(file, sep = r"\s+")
+    par_file.drop(par_file.tail(2).index, inplace = True)
     return par_file
 
 def read_all_par(directory, list_of_files):
