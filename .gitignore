@@ -5,3 +5,5 @@ par_files/
 *.csv
 *.pdf
 *.par
+*.Rhistory
+
