@@ -4,4 +4,4 @@ venv/
 par_files/
 *.csv
 *.pdf
-
+*.par

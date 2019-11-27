@@ -8,7 +8,7 @@ alpha.occupancies <- read_csv('173_occupancies.csv') %>%
   select('Particle' = X1, everything()) %>% 
   mutate(Particle = Particle + 1)
 
-gamma.occupancies <- read_csv('377_occupancies.csv') %>% 
+gamma.occupancies <- read_csv('510_occupancies.csv') %>% 
   select('Particle' = X1, everything()) %>% 
   mutate(Particle = Particle + 1)
 
@@ -57,7 +57,7 @@ cleave.classified %>%
   summarize(n = n()) %>% 
   mutate(label = paste(State, '\n', n)) %>% 
   ggplot() +
-  geom_treemap(aes(area = n, fill = State), color = 'black') +
+  geom_treemap(aes(area = n, fill = State, color = State)) +
   geom_treemap_text(aes(area = n, label = n), color = 'white', place = 'center') +
   scale_fill_manual(values = c('#1f77b4', '#ff7f0e', '#2ca02c', '#d62728', '#9467bd', '#8c564b', '#e377c2', '#7f7f7f', '#bcbd22', '#17becf'),
                     aesthetics = c('color', 'fill'))
@@ -71,5 +71,8 @@ particles.to.select <- cleave.classified %>%
   select(Particle)
 
 new.par.file <- original.par.file %>% 
-  mutate(OCC = if_else(C %in% particles.to.select$Particle | , 100, 0)) %>% 
-  mutate(INCLUDE = if_else(C %in% particles.to.select$Particle, 1, 0))
+  mutate(OCC = if_else(C %in% particles.to.select$Particle, 100, 0)) %>% 
+  mutate(INCLUDE = if_else(C %in% particles.to.select$Particle, 1, 0)) %>% 
+  drop_na()
+
+write_delim(new.par.file, path = 'both_uncleaved.par', delim = ' ')
