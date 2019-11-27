@@ -55,8 +55,9 @@ cleave.classified <- cleave.assigned %>%
 cleave.classified %>% 
   group_by(State) %>% 
   summarize(n = n()) %>% 
+  mutate(label = paste(State, '\n', n)) %>% 
   ggplot() +
-  geom_treemap(aes(area = n, color = State, fill = State)) +
+  geom_treemap(aes(area = n, fill = State), color = 'black') +
   geom_treemap_text(aes(area = n, label = n), color = 'white', place = 'center') +
   scale_fill_manual(values = c('#1f77b4', '#ff7f0e', '#2ca02c', '#d62728', '#9467bd', '#8c564b', '#e377c2', '#7f7f7f', '#bcbd22', '#17becf'),
                     aesthetics = c('color', 'fill'))
