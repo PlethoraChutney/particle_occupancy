@@ -64,3 +64,12 @@ cleave.classified %>%
 ggsave('particle_cleavage.pdf', width = 8, height = 5)
 
 #### Make new par file(s) ####
+original.par.file <- read_table2('par_files/output_par_173_1.par')
+
+particles.to.select <- cleave.classified %>% 
+  filter(State == 'Both Uncleaved') %>% 
+  select(Particle)
+
+new.par.file <- original.par.file %>% 
+  mutate(OCC = if_else(C %in% particles.to.select$Particle, 100, 0)) %>% 
+  mutate(INCLUDE = if_else(C %in% particles.to.select$Particle, 1, 0))
