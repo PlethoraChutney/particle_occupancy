@@ -31,7 +31,7 @@ def process_pars(directory, run_numbers):
     for run in full_tables.keys():
         columns = {}
         for i in range(len(full_tables[run])):
-            columns[i+1] = full_tables[run][i]['OCC']
+            columns[f'C{i+1}'] = full_tables[run][i]['OCC']
         dfs[run] = pd.DataFrame.from_dict(columns)
 
     return dfs
