@@ -66,7 +66,7 @@ simple.analysis <- cleave.assigned %>%
 cleave.classified %>% 
   group_by(State) %>% 
   summarize(n = n()) %>% 
-  mutate(label = paste(State, '\n', n)) %>% 
+  mutate(label = paste(State, '\n', format(n, big.mark = ','))) %>% 
   mutate(label = str_replace(label, ', ', '\n')) %>% 
   mutate(known = if_else(str_detect(State, 'Alpha Cleaved'), 'Alpha',  
                          if_else(str_detect(State, 'Gamma Cleaved'), 'Gamma', State))) %>% 
@@ -95,11 +95,12 @@ cleave.classified %>%
                          if_else(str_detect(State, 'Gamma Cleaved'), 'Gamma Cleaved', State))) %>% 
   group_by(State) %>% 
   summarize(n = n()) %>% 
-  mutate(label = paste(State, '\n', n)) %>% 
+  mutate(label = paste(State, '\n', format(n, big.mark = ','))) %>% 
   mutate(label = str_replace(label, ', ', '\n')) %>% 
   mutate(known = if_else(str_detect(State, 'Alpha Cleaved'), 'Alpha',  
                          if_else(str_detect(State, 'Gamma Cleaved'), 'Gamma', State))) %>% 
   ggplot() +
+  ggtitle(paste('Only particles with at least one cleaved subunit; total', format(nrow(filter(cleave.classified, str_detect(State, 'Cleaved'))), big.mark = ','))) +
   geom_treemap(aes(area = n, fill = known, subgroup = known), color = 'white') +
   geom_treemap_text(aes(area = n, label = label, subgroup = known), color = 'white', place = 'center') +
   theme(legend.position = 'none') +
@@ -116,6 +117,36 @@ cleave.classified %>%
   ),
   aesthetics = c('color', 'fill'))
 ggsave('cleaved_only.pdf', width = 8, height = 8)
+
+# uncleaved.only
+cleave.classified %>% 
+  filter(str_detect(State, 'Uncleaved')) %>% 
+  mutate(State = if_else(str_detect(State, 'Alpha Uncleaved'), 'Alpha Uncleaved',
+                         if_else(str_detect(State, 'Gamma Uncleaved'), 'Gamma Uncleaved', State))) %>% 
+  group_by(State) %>% 
+  summarize(n = n()) %>% 
+  mutate(label = paste(State, '\n', format(n, big.mark = ','))) %>% 
+  mutate(label = str_replace(label, ', ', '\n')) %>% 
+  mutate(known = if_else(str_detect(State, 'Alpha Uncleaved'), 'Alpha',  
+                         if_else(str_detect(State, 'Gamma Uncleaved'), 'Gamma', State))) %>% 
+  ggplot() +
+  ggtitle(paste('Only particles with at least one uncleaved subunit; total', format(nrow(filter(cleave.classified, str_detect(State, 'Uncleaved'))), big.mark = ','))) +
+  geom_treemap(aes(area = n, fill = known, subgroup = known), color = 'white') +
+  geom_treemap_text(aes(area = n, label = label, subgroup = known), color = 'white', place = 'center') +
+  theme(legend.position = 'none') +
+  scale_fill_manual(values = c('#1f77b4', # blue
+                               '#2ca02c', # green
+                               '#d62728', # red
+                               '#9467bd', # purple
+                               '#17becf', # cyan
+                               '#ff7f0e', # orange
+                               '#e377c2', # pink
+                               '#7f7f7f', # grey
+                               '#bcbd22', # yellow-green
+                               '#8c564b'  # brown
+  ),
+  aesthetics = c('color', 'fill'))
+ggsave('uncleaved_only.pdf', width = 8, height = 8)
 
 simpler.classified %>% 
   group_by(State) %>% 
