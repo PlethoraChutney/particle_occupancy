@@ -23,3 +23,6 @@ Next, you must manually edit the R script to indicate which class is what state
 of protein, and how to group the classes. This will result in a graph of which
 particles belong to which state, and you can also output a new par file of
 just one (or more) states for further processing.
+
+To make a new star file, first you'll need to clone Craig's pystar from
+https://github.com/PlethoraChutney/pystar.git
