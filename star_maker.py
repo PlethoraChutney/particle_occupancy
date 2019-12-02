@@ -4,6 +4,7 @@ import pystar
 import re
 import collections
 import pandas as pd
+import argparse
 
 def read_particles_to_keep(csv_file):
     df = pd.read_csv(csv_file)
@@ -74,3 +75,20 @@ _rlnOriginY #18
 ''')
 
     filtered_df.to_csv(outfile, sep = ' ', header = False, index = False, mode = 'a')
+
+def main():
+    parser = argparse.ArgumentParser(description = 'Output a star file of your selected class')
+    parser.add_argument('input_star', help = 'star file generated from cisTEM (same stack as par files)')
+    parser.add_argument('selected_particles', help = 'csv file of the particles you selected, from R')
+    parser.add_argument('output_star', help = 'Where to save the resultant star file')
+
+    args = parser.parse_args()
+    input_star = args.input_star
+    output_star = args.output_star
+    particles = args.selected_particles
+
+    filtered_df = star_to_filtered_pd(input_star, particles)
+    pd_to_star(filtered_df, output_star)
+
+if __name__ == '__main__':
+    main()
