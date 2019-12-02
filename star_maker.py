@@ -5,29 +5,15 @@ import re
 import collections
 import pandas as pd
 
-def star_to_pd(star_file):
+def read_particles_to_keep(csv_file):
+    df = pd.read_csv(csv_file)
+
+    return(df['Particle'].tolist())
+
+def star_to_filtered_pd(star_file, particle_csv):
 
     star_data = pystar.load(star_file)['']
     fields = list(star_data)[0]
-    #
-    # index_graph_name = fields.index('rlnMicrographName')
-    # index_x = fields.index('rlnCoordinateX')
-    # index_y = fields.index('rlnCoordinateY')
-    # index_image_name = fields.index('rlnImageName')
-    # index_defocus_u = fields.index('rlnDefocusU')
-    # index_defocus_v = fields.index('rlnDefocusV')
-    # index_defocus_angle = fields.index('rlnDefocusAngle')
-    # index_phase_shift = fields.index('rlnPhaseShift')
-    # index_voltage = fields.index('rlnVoltage')
-    # index_spherical_abberation = fields.index('rlnSphericalAbberation')
-    # index_amplitude_contrast = fields.index('rlnAmplitudeContrast')
-    # index_magnification = fields.index('rlnMagnification')
-    # index_detector_pixel_size = fields.index('rlnDetectorPixelSize')
-    # index_angle_rot = fields.index('rlnAngleRot')
-    # index_angle_tilt = fields.index('rlnAngleTilt')
-    # index_angle_psi = fields.index('rlnAnglePsi')
-    # index_origin_x = fields.index('rlnOriginX')
-    # index_origin_y = fields.index('rlnOriginY')
 
     rows_list = []
     for pt in list(star_data.values())[0]:
@@ -55,4 +41,36 @@ def star_to_pd(star_file):
         rows_list.append(single_row)
 
     to_return = pd.DataFrame(rows_list)
-    return(to_return)
+
+    particle_list = read_particles_to_keep(particle_csv)
+    particle_row_indeces = [x - 1 for x in particle_list]
+
+    return to_return.iloc[particle_row_indeces,]
+
+def pd_to_star(filtered_df, outfile):
+    with open(outfile, 'w') as out:
+        out.write('''
+data_
+
+loop_
+_rlnMicrographName #1
+_rlnCoordinateX #2
+_rlnCoordinateY #3
+_rlnImageName #4
+_rlnDefocusU #5
+_rlnDefocusV #6
+_rlnDefocusAngle #7
+_rlnPhaseShift #8
+_rlnVoltage #9
+_rlnSphericalAberration #10
+_rlnAmplitudeContrast #11
+_rlnMagnification #12
+_rlnDetectorPixelSize #13
+_rlnAngleRot #14
+_rlnAngleTilt #15
+_rlnAnglePsi #16
+_rlnOriginX #17
+_rlnOriginY #18
+''')
+
+    filtered_df.to_csv(outfile, sep = ' ', header = False, index = False, mode = 'a')
