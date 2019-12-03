@@ -1,6 +1,7 @@
 library(tidyverse)
 library(ggplot2)
 library(treemapify)
+library(ggupset)
 
 #### Data import and cleaning ####
 
@@ -173,6 +174,61 @@ simpler.classified %>%
   aesthetics = c('color', 'fill'))
 ggsave('simple_particle_cleavage_alternate.pdf', width = 8, height = 8)
 
+# Upset plot
+upset.data <- cleave.assigned %>%  
+  rename(Alpha = 'alpha_cleaved', Gamma = 'gamma_cleaved') %>% 
+  mutate(Alpha = paste('Alpha', Alpha), Gamma = paste('Gamma', Gamma)) %>% 
+  mutate(State = str_extract_all(paste(Alpha, Gamma, sep = " "), "^Alpha .*ed(?= )|Gamma .*ed$")) %>% 
+  mutate(Merged_State = paste(Alpha, Gamma, sep = ' '))
+
+pdf('upset_plot.pdf', width = 6, height = 6)
+upset.data %>% 
+  ggplot(aes(x = State, fill = Merged_State, color = Merged_State)) +
+  theme_minimal() +
+  geom_bar() +
+  scale_fill_manual(values = c('#1f77b4', # blue
+                               '#2ca02c', # green
+                               '#d62728', # red
+                               '#9467bd', # purple
+                               '#17becf', # cyan
+                               '#ff7f0e', # orange
+                               '#e377c2', # pink
+                               '#7f7f7f', # grey
+                               '#bcbd22', # yellow-green
+                               '#8c564b'  # brown
+  ),
+  aesthetics = c('color', 'fill')) +
+  theme(legend.position = 'none') +
+  ylab('Number of Particles') +
+  xlab('Cleavage State') +
+  scale_x_upset() +
+  scale_y_continuous(breaks = seq(from = 0, to = 100000, by = 5000)) +
+  axis_combmatrix(levels = c('Alpha Uncleaved', 'Alpha Undefined', 'Alpha Cleaved', 'Gamma Uncleaved', 'Gamma Undefined', 'Gamma Cleaved')) +
+  theme_combmatrix(combmatrix.panel.line.size = 0.000)
+dev.off()
+
+upset.data %>% 
+  group_by(Merged_State) %>% 
+  summarize(n = n()) %>% 
+  mutate(State = str_extract_all(Merged_State, "^Alpha .*ed(?= )|Gamma .*ed$")) %>% 
+  ggplot(aes(x = State, y = n, fill = Merged_State)) +
+  theme_minimal() +
+  geom_bar(stat = 'identity') +
+  scale_x_upset() +
+  scale_fill_manual(values = c('#1f77b4', # blue
+                               '#2ca02c', # green
+                               '#d62728', # red
+                               '#9467bd', # purple
+                               '#17becf', # cyan
+                               '#ff7f0e', # orange
+                               '#e377c2', # pink
+                               '#7f7f7f', # grey
+                               '#bcbd22', # yellow-green
+                               '#8c564b'  # brown
+  ),
+  aesthetics = c('color', 'fill')) +
+  theme(legend.position = 'none') +
+  axis_combmatrix(levels = c('Alpha Uncleaved', 'Alpha Undefined', 'Alpha Cleaved', 'Gamma Uncleaved', 'Gamma Undefined', 'Gamma Cleaved'))
 
 #### Make new par file(s) ####
 original.par.file <- read_table2('par_files/output_par_173_1.par')
