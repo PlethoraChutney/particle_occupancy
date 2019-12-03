@@ -187,3 +187,16 @@ new.par.file <- original.par.file %>%
   drop_na()
 
 write_delim(new.par.file, path = 'both_uncleaved.par', delim = ' ')
+
+#### Make csv files of particle numbers ####
+particles.to.select <- cleave.classified %>% 
+  filter(State == 'Both Uncleaved') %>% 
+  select(Particle)
+
+write_csv(particles.to.select, 'uncleaved_particles.csv')
+
+particles.to.select <- cleave.classified %>% 
+  filter(State == 'Both Cleaved') %>% 
+  select(Particle)
+
+write_csv(particles.to.select, 'cleaved_particles.csv')
