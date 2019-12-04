@@ -5,6 +5,12 @@ library(ggupset)
 library(UpSetR)
 library(RColorBrewer)
 
+#### Hardcoding ####
+alpha.cleaved.list <- c('C1', 'C4')
+alpha.uncleaved.list <- c('C3')
+gamma.cleaved.list <- c('C1')
+gamma.cleaved.list <- c('C2')
+
 #### Data import and cleaning ####
 
 alpha.occupancies <- read_csv('173_occupancies.csv') %>% 
@@ -31,13 +37,13 @@ gamma.assigned <- gamma.occupancies %>%
 
 merged.assigned <- full_join(alpha.assigned, gamma.assigned, by = 'Particle')
 
-#### Class assignment and Plot ####
-# this is where you tell the script which classes are cleaved and which are uncleaved
+#### Class Assignment ####
+
 cleave.assigned <- merged.assigned %>% 
-  mutate(alpha_cleaved = if_else(Alpha_Class %in% c('C1', 'C4'), 'Cleaved', 
-                                 if_else(Alpha_Class %in% c('C3'), 'Uncleaved', 'Undefined'))) %>% 
-  mutate(gamma_cleaved = if_else(Gamma_Class == 'C1', 'Cleaved',
-                                 if_else(Gamma_Class == 'C2', 'Uncleaved', 'Undefined'))) %>% 
+  mutate(alpha_cleaved = if_else(Alpha_Class %in% alpha.cleaved.list, 'Cleaved', 
+                                 if_else(Alpha_Class %in% alpha.uncleaved.list, 'Uncleaved', 'Undefined'))) %>% 
+  mutate(gamma_cleaved = if_else(Gamma_Class %in% gamma.cleaved.list, 'Cleaved',
+                                 if_else(Gamma_Class %in% gamma.uncleaved.list, 'Uncleaved', 'Undefined'))) %>% 
   select(Particle, alpha_cleaved, gamma_cleaved) %>% 
   arrange(Particle)
 
@@ -52,19 +58,8 @@ cleave.classified <- cleave.assigned %>%
                                                                          if_else(gamma_cleaved == 'Uncleaved' & alpha_cleaved == 'Undefined', 'Gamma Uncleaved, Alpha Undefined',
                                                                                  if_else(alpha_cleaved == 'Undefined' & gamma_cleaved == 'Undefined', 'Both Undefined', 'MISCLASSIFICATION!'))))))))))
 
-simple.analysis <- cleave.assigned %>% 
-  mutate(Alpha_State = if_else(alpha_cleaved == 'Uncleaved' & gamma_cleaved == 'Uncleaved', 'Both Uncleaved',
-                               if_else(alpha_cleaved == 'Cleaved' & gamma_cleaved == 'Cleaved', 'Both Cleaved',
-                                       if_else(alpha_cleaved == 'Cleaved', 'Alpha Cleaved',
-                                               if_else(alpha_cleaved == 'Uncleaved', 'Alpha Uncleaved',
-                                                       if_else(alpha_cleaved == 'Undefined', 'Undefined', 'MISCLASSIFICATION!')))))) %>% 
-  mutate(Gamma_State = if_else(alpha_cleaved == 'Uncleaved' & gamma_cleaved == 'Uncleaved', 'Both Uncleaved',
-                               if_else(alpha_cleaved == 'Cleaved' & gamma_cleaved == 'Cleaved', 'Both Cleaved',
-                                       if_else(gamma_cleaved == 'Cleaved', 'Gamma Cleaved',
-                                               if_else(gamma_cleaved == 'Uncleaved', 'Gamma Uncleaved', 
-                                                       if_else(gamma_cleaved == 'Undefined', 'Undefined', 'MISCLASSIFICATION')))))) %>% 
-  select(Particle, Alpha_State, Gamma_State)
 
+#### Treemap Plots ####
 # most informative plot
 cleave.classified %>% 
   group_by(State) %>% 
@@ -121,7 +116,7 @@ cleave.classified %>%
   aesthetics = c('color', 'fill'))
 ggsave('cleaved_only.pdf', width = 8, height = 8)
 
-# uncleaved.only
+# uncleaved only
 cleave.classified %>% 
   filter(str_detect(State, 'Uncleaved')) %>% 
   mutate(State = if_else(str_detect(State, 'Alpha Uncleaved'), 'Alpha Uncleaved',
@@ -151,39 +146,14 @@ cleave.classified %>%
   aesthetics = c('color', 'fill'))
 ggsave('uncleaved_only.pdf', width = 8, height = 8)
 
-simpler.classified %>% 
-  group_by(State) %>% 
-  summarize(n = n()) %>% 
-  mutate(label = paste(State, '\n', n)) %>% 
-  mutate(label = str_replace(label, ', ', '\n')) %>% 
-  mutate(known = if_else(str_detect(State, 'Alpha Cleaved'), 'Alpha',  
-                         if_else(str_detect(State, 'Gamma Cleaved'), 'Gamma', State))) %>% 
-  ggplot() +
-  geom_treemap(aes(area = n, fill = known, subgroup = known), color = 'white') +
-  geom_treemap_text(aes(area = n, label = label, subgroup = known), color = 'white', place = 'center') +
-  theme(legend.position = 'none') +
-  scale_fill_manual(values = c('#1f77b4', # blue
-                               '#2ca02c', # green
-                               '#d62728', # red
-                               '#9467bd', # purple
-                               '#17becf', # cyan
-                               '#ff7f0e', # orange
-                               '#e377c2', # pink
-                               '#7f7f7f', # grey
-                               '#bcbd22', # yellow-green
-                               '#8c564b'  # brown
-  ),
-  aesthetics = c('color', 'fill'))
-ggsave('simple_particle_cleavage_alternate.pdf', width = 8, height = 8)
-
-# Upset plot
+#### Upset Plots ####
 upset.data <- cleave.assigned %>%  
   rename(Alpha = 'alpha_cleaved', Gamma = 'gamma_cleaved') %>% 
   mutate(Alpha = paste('Alpha', Alpha), Gamma = paste('Gamma', Gamma)) %>% 
   mutate(State = str_extract_all(paste(Alpha, Gamma, sep = " "), "^Alpha .*ed(?= )|Gamma .*ed$")) %>% 
   mutate(Merged_State = paste(Alpha, Gamma, sep = ' '))
 
-## upsetr way
+# upsetr way (more informative but busier)
 upsetr.data <- upset.data %>% 
   select(Particle, ms = Merged_State) %>% 
   mutate(Alpha_Cleaved = if_else(str_detect(ms, 'Alpha Cleaved'), 1, 0),
@@ -209,7 +179,7 @@ upset(upsetr.data,
       )
 dev.off()
 
-## ggplot way
+# ggplot way (prettier)
 pdf('upset_plot.pdf', width = 6, height = 6)
 upset.data %>% 
   ggplot(aes(x = State, fill = Merged_State, color = Merged_State)) +
@@ -233,47 +203,10 @@ upset.data %>%
   scale_x_upset() +
   scale_y_continuous(breaks = seq(from = 0, to = 100000, by = 5000)) +
   axis_combmatrix(levels = c('Alpha Uncleaved', 'Alpha Undefined', 'Alpha Cleaved', 'Gamma Uncleaved', 'Gamma Undefined', 'Gamma Cleaved')) +
-  theme_combmatrix(combmatrix.panel.line.size = 0.000)
+  theme_combmatrix(combmatrix.panel.line.size = 0)
 dev.off()
 
-upset.data %>% 
-  group_by(Merged_State) %>% 
-  summarize(n = n()) %>% 
-  mutate(State = str_extract_all(Merged_State, "^Alpha .*ed(?= )|Gamma .*ed$")) %>% 
-  ggplot(aes(x = State, y = n, fill = Merged_State)) +
-  theme_minimal() +
-  geom_bar(stat = 'identity') +
-  scale_x_upset() +
-  scale_fill_manual(values = c('#1f77b4', # blue
-                               '#2ca02c', # green
-                               '#d62728', # red
-                               '#9467bd', # purple
-                               '#17becf', # cyan
-                               '#ff7f0e', # orange
-                               '#e377c2', # pink
-                               '#7f7f7f', # grey
-                               '#bcbd22', # yellow-green
-                               '#8c564b'  # brown
-  ),
-  aesthetics = c('color', 'fill')) +
-  theme(legend.position = 'none') +
-  axis_combmatrix(levels = c('Alpha Uncleaved', 'Alpha Undefined', 'Alpha Cleaved', 'Gamma Uncleaved', 'Gamma Undefined', 'Gamma Cleaved'))
-
-#### Make new par file(s) ####
-original.par.file <- read_table2('par_files/output_par_173_1.par')
-
-particles.to.select <- cleave.classified %>% 
-  filter(State == 'Both Uncleaved') %>% 
-  select(Particle)
-
-new.par.file <- original.par.file %>% 
-  mutate(OCC = if_else(C %in% particles.to.select$Particle, 100, 0)) %>% 
-  mutate(INCLUDE = if_else(C %in% particles.to.select$Particle, 1, 0)) %>% 
-  drop_na()
-
-write_delim(new.par.file, path = 'both_uncleaved.par', delim = ' ')
-
-#### Make csv files of particle numbers ####
+#### CSV Files for Stars ####
 particles.to.select <- cleave.classified %>% 
   filter(State == 'Both Uncleaved') %>% 
   select(Particle)

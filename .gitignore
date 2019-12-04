@@ -3,6 +3,7 @@ venv/
 *.Rdata
 par_files/
 star_files/
+*.star
 *.csv
 *.pdf
 *.par
