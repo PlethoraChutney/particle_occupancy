@@ -2,6 +2,8 @@ library(tidyverse)
 library(ggplot2)
 library(treemapify)
 library(ggupset)
+library(UpSetR)
+library(RColorBrewer)
 
 #### Data import and cleaning ####
 
@@ -181,6 +183,33 @@ upset.data <- cleave.assigned %>%
   mutate(State = str_extract_all(paste(Alpha, Gamma, sep = " "), "^Alpha .*ed(?= )|Gamma .*ed$")) %>% 
   mutate(Merged_State = paste(Alpha, Gamma, sep = ' '))
 
+## upsetr way
+upsetr.data <- upset.data %>% 
+  select(Particle, ms = Merged_State) %>% 
+  mutate(Alpha_Cleaved = if_else(str_detect(ms, 'Alpha Cleaved'), 1, 0),
+         Alpha_Uncleaved = if_else(str_detect(ms, 'Alpha Uncleaved'), 1, 0),
+         Alpha_Undefined = if_else(str_detect(ms, 'Alpha Undefined'), 1, 0),
+         Gamma_Cleaved = if_else(str_detect(ms, 'Gamma Cleaved'), 1, 0),
+         Gamma_Uncleaved = if_else(str_detect(ms, 'Gamma Uncleaved'), 1, 0),
+         Gamma_Undefined = if_else(str_detect(ms, 'Gamma Undefined'), 1, 0)
+  ) %>% 
+  select(-ms) %>% 
+  as.data.frame()
+
+pdf('upsetr_plot.pdf', width = 6, height = 6)
+upset(upsetr.data,
+      sets = c('Gamma_Cleaved', 'Gamma_Undefined', 'Gamma_Uncleaved', 'Alpha_Cleaved', 'Alpha_Undefined', 'Alpha_Uncleaved'),
+      keep.order = TRUE,
+      line.size = NA,
+      mainbar.y.label = 'Number of Particles',
+      sets.x.label = 'Number of Particles',
+      set_size.scale_max = 300000,
+      set_size.show = TRUE,
+      main.bar.color = brewer.pal(9, 'Paired')
+      )
+dev.off()
+
+## ggplot way
 pdf('upset_plot.pdf', width = 6, height = 6)
 upset.data %>% 
   ggplot(aes(x = State, fill = Merged_State, color = Merged_State)) +
