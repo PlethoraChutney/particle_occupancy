@@ -13,6 +13,15 @@ classifications A and B) will result in two different sets of five classes each
 of both class A1 and B3, or class A2 and B3-B5. These scripts help you do that.
 
 ## Use
+### Required R libraries
+ * tidyverse
+ * ggplot2
+ * treemapify
+ * ggupset
+ * UpSetR
+ * RColorBrewer
+
+### Script functions
 First, run the python script to read in the par files (giving the numbers of each
 reconstruction so it knows how to split them up). This script simply combines
 the occupancy column of each par file and separates them by run into alpha and
