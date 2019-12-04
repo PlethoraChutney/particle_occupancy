@@ -38,25 +38,32 @@ def process_pars(directory, run_numbers):
 
     return dfs
 
-def write_dataframes(dfs, outdir):
+def write_dataframes(dfs, outdir, alpha_number, gamma_number):
     outdir = os.path.abspath(outdir)
     for key in dfs.keys():
-        outpath = os.path.join(outdir, f'{key}_occupancies.csv')
+        if key == alpha_number:
+            subunit = 'alpha'
+        elif key == gamma_number:
+            subunit = 'gamma'
+        else:
+            subunit = 'unknown'
+        outpath = os.path.join(outdir, f'{subunit}_occupancies.csv')
         dfs[key].to_csv(outpath)
 
 def main():
     parser = argparse.ArgumentParser(description = 'Collect occupancy values from par files')
-    parser.add_argument('run_numbers', metavar='run-numbers', nargs='*', help = 'The numbers cisTEM put in your different runs')
-    parser.add_argument('in_dir', metavar='par-files-dir', help = 'Directory containing all par files')
+    parser.add_argument('in_dir', metavar = 'par-files-dir', help = 'Directory containing all par files')
+    parser.add_argument('alpha_number', metavar = 'alpha-number', help = 'cisTEM run number for the alpha focused classification')
+    parser.add_argument('gamma_number', metavar = 'gamma-number', help = 'cisTEM run number for the gamma focused classification')
     parser.add_argument('-o', '--out-dir', default = os.getcwd(), help = 'Where to save csv files. Default current dir')
 
     args = parser.parse_args()
-    run_numbers = args.run_numbers
+    run_numbers = [args.alpha_number, args.gamma_number]
     in_dir = args.in_dir
     out_dir = args.out_dir
 
     par_dfs = process_pars(in_dir, run_numbers)
-    write_dataframes(par_dfs, out_dir)
+    write_dataframes(par_dfs, out_dir, args.alpha_number, args.gamma_number)
 
 if __name__ == '__main__':
     main()

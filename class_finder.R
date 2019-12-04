@@ -13,11 +13,11 @@ gamma.cleaved.list <- c('C2')
 
 #### Data import and cleaning ####
 
-alpha.occupancies <- read_csv('173_occupancies.csv') %>% 
+alpha.occupancies <- read_csv('alpha_occupancies.csv') %>% 
   select('Particle' = X1, everything()) %>% 
   mutate(Particle = Particle + 1)
 
-gamma.occupancies <- read_csv('510_occupancies.csv') %>% 
+gamma.occupancies <- read_csv('gamma_occupancies.csv') %>% 
   select('Particle' = X1, everything()) %>% 
   mutate(Particle = Particle + 1)
 
