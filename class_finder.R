@@ -5,13 +5,15 @@ library(ggupset)
 library(UpSetR)
 library(RColorBrewer)
 
-#### Hardcoding ####
+# 1 Hardcoding (change these values) --------------------------------------
+
 alpha.cleaved.list <- c('C1', 'C4')
 alpha.uncleaved.list <- c('C3')
 gamma.cleaved.list <- c('C1')
 gamma.cleaved.list <- c('C2')
 
-#### Data import and cleaning ####
+
+# 2 Import ----------------------------------------------------------------
 
 alpha.occupancies <- read_csv('alpha_occupancies.csv') %>% 
   select('Particle' = X1, everything()) %>% 
@@ -20,6 +22,9 @@ alpha.occupancies <- read_csv('alpha_occupancies.csv') %>%
 gamma.occupancies <- read_csv('gamma_occupancies.csv') %>% 
   select('Particle' = X1, everything()) %>% 
   mutate(Particle = Particle + 1)
+
+
+# * 2.1 Data Tidying ------------------------------------------------------
 
 alpha.assigned <- alpha.occupancies %>% 
   gather(key = Alpha_Class, value = Occupancy, -Particle) %>% 
@@ -37,7 +42,8 @@ gamma.assigned <- gamma.occupancies %>%
 
 merged.assigned <- full_join(alpha.assigned, gamma.assigned, by = 'Particle')
 
-#### Class Assignment ####
+
+# * 2.2 Cleavage Class Assignment -----------------------------------------
 
 cleave.assigned <- merged.assigned %>% 
   mutate(alpha_cleaved = if_else(Alpha_Class %in% alpha.cleaved.list, 'Cleaved', 
@@ -59,8 +65,13 @@ cleave.classified <- cleave.assigned %>%
                                                                                  if_else(alpha_cleaved == 'Undefined' & gamma_cleaved == 'Undefined', 'Both Undefined', 'MISCLASSIFICATION!'))))))))))
 
 
-#### Treemap Plots ####
-# most informative plot
+# 3 Plots -----------------------------------------------------------------
+
+
+# * 3.1 Treemap Plots -----------------------------------------------------
+
+# All cleavage states
+
 cleave.classified %>% 
   group_by(State) %>% 
   summarize(n = n()) %>% 
@@ -86,7 +97,8 @@ cleave.classified %>%
                     aesthetics = c('color', 'fill'))
 ggsave('particle_cleavage.pdf', width = 8, height = 8)
 
-# cleaved only
+# Cleaved particles only
+
 cleave.classified %>% 
   filter(str_detect(State, 'Cleaved')) %>% 
   mutate(State = if_else(str_detect(State, 'Alpha Cleaved'), 'Alpha Cleaved',
@@ -116,7 +128,8 @@ cleave.classified %>%
   aesthetics = c('color', 'fill'))
 ggsave('cleaved_only.pdf', width = 8, height = 8)
 
-# uncleaved only
+# Uncleaved particles only
+
 cleave.classified %>% 
   filter(str_detect(State, 'Uncleaved')) %>% 
   mutate(State = if_else(str_detect(State, 'Alpha Uncleaved'), 'Alpha Uncleaved',
@@ -146,7 +159,9 @@ cleave.classified %>%
   aesthetics = c('color', 'fill'))
 ggsave('uncleaved_only.pdf', width = 8, height = 8)
 
-#### Upset Plots ####
+
+# * 3.2 Upset Plots -------------------------------------------------------
+
 upset.data <- cleave.assigned %>%  
   rename(Alpha = 'alpha_cleaved', Gamma = 'gamma_cleaved') %>% 
   mutate(Alpha = paste('Alpha', Alpha), Gamma = paste('Gamma', Gamma)) %>% 
@@ -206,7 +221,9 @@ upset.data %>%
   theme_combmatrix(combmatrix.panel.line.size = 0)
 dev.off()
 
-#### CSV Files for Stars ####
+
+# 4 Export csv ------------------------------------------------------------
+
 particles.to.select <- cleave.classified %>% 
   filter(State == 'Both Uncleaved') %>% 
   select(Particle)

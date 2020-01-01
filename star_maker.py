@@ -6,6 +6,8 @@ import collections
 import pandas as pd
 import argparse
 
+# 1 Data I/O -------------------------------------------------------------------
+
 def read_particles_to_keep(csv_file):
     df = pd.read_csv(csv_file)
 
@@ -48,6 +50,7 @@ def star_to_filtered_pd(star_file, particle_csv):
 
     return to_return.iloc[particle_row_indeces,]
 
+# If Relion ever changes the required column names, this will need to be updated.
 def pd_to_star(filtered_df, outfile):
     with open(outfile, 'w') as out:
         out.write('''
@@ -75,6 +78,8 @@ _rlnOriginY #18
 ''')
 
     filtered_df.to_csv(outfile, sep = ' ', header = False, index = False, mode = 'a')
+
+# 2 Main -----------------------------------------------------------------------
 
 def main():
     parser = argparse.ArgumentParser(description = 'Output a star file of your selected class')

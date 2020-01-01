@@ -3,6 +3,8 @@ import sys
 import pandas as pd
 import argparse
 
+# 1 Data I/O -------------------------------------------------------------------
+
 # we drop the last two rows because they're cisTEM diagnostics
 def read_par(file):
     par_file = pd.read_csv(file, sep = r"\s+")
@@ -15,6 +17,8 @@ def read_all_par(directory, list_of_files):
         fullpath = os.path.abspath(os.path.join(directory, file))
         pars_to_read.append(read_par(fullpath))
     return pars_to_read
+
+# 2 Find per-particle class ----------------------------------------------------
 
 def process_pars(directory, run_numbers):
     all_pars = [x for x in os.listdir(directory) if x.endswith('.par')]
@@ -49,6 +53,8 @@ def write_dataframes(dfs, outdir, alpha_number, gamma_number):
             subunit = 'unknown'
         outpath = os.path.join(outdir, f'{subunit}_occupancies.csv')
         dfs[key].to_csv(outpath)
+
+# 3 Main -----------------------------------------------------------------------
 
 def main():
     parser = argparse.ArgumentParser(description = 'Collect occupancy values from par files')
